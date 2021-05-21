@@ -3,6 +3,9 @@ final int HEIGHT = 29;
 
 final int DRAW_UNIT = 16;
 
+final int MAZE_SIZE = 480;
+final int MARGIN = 16;
+
 final int PATH = 0;
 final int WALL = 1;
 
@@ -10,7 +13,7 @@ boolean started;
 boolean done;
 
 void settings() {
-  size(WIDTH * DRAW_UNIT, HEIGHT * DRAW_UNIT);
+  size(WIDTH * DRAW_UNIT, HEIGHT * DRAW_UNIT + MAZE_SIZE + MARGIN * 2);
 }
 
 int map[][];
@@ -57,7 +60,67 @@ void draw() {
     line(cx, cy, cx + direction.x * (DRAW_UNIT / 2 - 2), cy + direction.y * (DRAW_UNIT / 2 - 2));  
     line(cx, cy, cx - direction.x * (DRAW_UNIT / 2 - 2), cy - direction.y * (DRAW_UNIT / 2 - 2));  
     line(cx + direction.x * (DRAW_UNIT / 2 - 2), cy + direction.y * (DRAW_UNIT / 2 - 2), cx + direction.y * (DRAW_UNIT / 2 - 2), cy + direction.x * (DRAW_UNIT / 2 - 2));  
-    line(cx + direction.x * (DRAW_UNIT / 2 - 2), cy + direction.y * (DRAW_UNIT / 2 - 2), cx - direction.y * (DRAW_UNIT / 2 - 2), cy - direction.x * (DRAW_UNIT / 2 - 2));  
+    line(cx + direction.x * (DRAW_UNIT / 2 - 2), cy + direction.y * (DRAW_UNIT / 2 - 2), cx - direction.y * (DRAW_UNIT / 2 - 2), cy - direction.x * (DRAW_UNIT / 2 - 2));
+    
+    draw3dMaze();
+  }
+}
+
+void draw3dMaze() {
+  // Draw Maze
+  noFill();
+  stroke(255);
+  int depth = 5;
+  int om = HEIGHT * DRAW_UNIT + MARGIN; 
+  int field_unit = MAZE_SIZE / (depth * 2 + 1);
+  float left = 0;
+  float top = 0;
+  float w = MAZE_SIZE - 1;
+  float h = MAZE_SIZE - 1;
+  
+  int mx = cur_x;
+  int my = cur_y;
+  
+  for (int d = 0; d < depth; d++) {
+    if (map[mx][my] == WALL) {
+      line(left + MARGIN, top + om, left + w + MARGIN, top + om);
+      line(left + MARGIN, top + om + h, left + w + MARGIN, top + om + h);
+      break;
+    }
+    
+    // Draw Wall
+    Directions lw = direction.turnLeft();
+    Directions rw = direction.turnRight();
+    
+    if (map[mx + lw.x][my + lw.y] == WALL) {
+      line(left + MARGIN, top + om, left + MARGIN + field_unit, top + om + field_unit);
+      line(left + MARGIN, top + om + w - 1, left + MARGIN + field_unit, top + om + w - 1 - field_unit);
+      line(left + MARGIN + field_unit, top + om + field_unit, left + MARGIN + field_unit, top + om + w - 1 - field_unit);
+    }
+    else {
+      line(left + MARGIN, top + om + field_unit, left + MARGIN + field_unit, top + om + field_unit);
+      line(left + MARGIN, top + om + w - 1 - field_unit, left + MARGIN + field_unit, top + om + w - 1 - field_unit);
+      line(left + MARGIN + field_unit, top + om + field_unit, left + MARGIN + field_unit, top + om + w - 1 - field_unit);
+    }
+    
+    if (map[mx + rw.x][my + rw.y] == WALL) {
+      line(left + w + MARGIN - 1, top + om, left + w + MARGIN - field_unit - 1, top + om + field_unit);
+      line(left + w + MARGIN - 1, top + om + w - 1, left + w + MARGIN - field_unit, top + om + w - 1 - field_unit);
+      line(left + w + MARGIN - field_unit - 1, top + om + field_unit, left + w + MARGIN - field_unit - 1, top + om + w - 1 - field_unit);
+    }
+    else {
+      line(left + w + MARGIN - 1, top + om + field_unit, left + w + MARGIN - field_unit - 1, top + om + field_unit);
+      line(left + w + MARGIN - 1, top + om + w - 1 - field_unit, left + w + MARGIN - field_unit, top + om + w - 1 - field_unit);
+      line(left + w + MARGIN - field_unit - 1, top + om + field_unit, left + w + MARGIN - field_unit - 1, top + om + w - 1 - field_unit);
+    }
+
+    mx += direction.x;
+    my += direction.y;
+    
+    left += field_unit;
+    top += field_unit;
+    w -= field_unit * 2;
+    h -= field_unit * 2;
   }
 }
 
@@ -115,6 +178,13 @@ void keyPressed() {
     if (map[cur_x + direction.x][cur_y + direction.y] == PATH) {
       cur_x += direction.x;
       cur_y += direction.y;
+    }
+  }
+  else if (keyCode == DOWN) {
+    // backward
+    if (map[cur_x - direction.x][cur_y - direction.y] == PATH) {
+      cur_x -= direction.x;
+      cur_y -= direction.y;
     }
   }
   
